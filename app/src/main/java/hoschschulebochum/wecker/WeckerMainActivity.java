@@ -9,7 +9,7 @@ import android.widget.TextView;
 
 public class WeckerMainActivity extends AppCompatActivity {
 
-    private TextView mTextMessage;
+    private TextView mTextMessage; //Felix Add
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
