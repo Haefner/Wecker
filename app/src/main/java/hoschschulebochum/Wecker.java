@@ -12,6 +12,7 @@ public class Wecker {
     private Boolean settingsSouldSnoozeWhenLigthChange;
     private Boolean settingsShouldSnoozeWhenStartToMove;
     private Boolean settingsShouldNotRingByConflictsInCalender;
+    private MyLocation home;
 
 
     public Time getTime() {
@@ -64,5 +65,13 @@ public class Wecker {
 
     public void setSettingsShouldNotRingByConflictsInCalender(Boolean settingsShouldNotRingByConflictsInCalender) {
         this.settingsShouldNotRingByConflictsInCalender = settingsShouldNotRingByConflictsInCalender;
+    }
+
+    public MyLocation getHome() {
+        return home;
+    }
+
+    public void setHome(MyLocation home) {
+        this.home = home;
     }
 }
