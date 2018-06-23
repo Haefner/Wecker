@@ -1,10 +1,12 @@
 package hoschschulebochum.souldRing;
 
-import hoschschulebochum.souldRing.IShouldRing;
-
 public class ShouldRing implements IShouldRing {
     @Override
     public boolean doesLocationFit() {
+
+
+
+
         return true;
     }
 

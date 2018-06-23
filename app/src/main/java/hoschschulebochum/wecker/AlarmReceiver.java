@@ -15,7 +15,7 @@ import android.support.v4.content.WakefulBroadcastReceiver;
  * first show a message to user in the activity UI, second play the alarm ringtone and third send an Android notification message.
  * So this is the place to add enhancement for different types of user notifications.
  */
-class AlarmReceiver extends WakefulBroadcastReceiver {
+public class AlarmReceiver extends WakefulBroadcastReceiver {
 
     @Override
     public void onReceive(final Context context, Intent intent) {
