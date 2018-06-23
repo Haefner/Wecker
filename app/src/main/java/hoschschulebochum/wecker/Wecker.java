@@ -1,4 +1,4 @@
-package hoschschulebochum;
+package hoschschulebochum.wecker;
 
 import java.sql.Time;
 
