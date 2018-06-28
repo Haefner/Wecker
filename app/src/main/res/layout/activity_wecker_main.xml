@@ -20,21 +20,25 @@
     <!-- Unsere selbst designte Seite -->
 
     <TimePicker
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:id="@+id/alarmTimePicker"
+        android:layout_width="wrap_content"
+        android:layout_height="451dp"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true" />
 
 
     <ToggleButton
+        android:id="@+id/alarmToggle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Alarm On/Off"
-        android:id="@+id/alarmToggle"
-        android:layout_centerHorizontal="true"
         android:layout_below="@+id/alarmTimePicker"
-        android:onClick="onToggleClicked" />
+        android:layout_centerHorizontal="true"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="24dp"
+        android:onClick="onToggleClicked"
+        android:text="Alarm On/Off"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -58,5 +62,27 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:menu="@menu/navigation" />
+
+
+    <Button
+        android:id="@+id/button_alarm_snooze"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginBottom="8dp"
+        android:layout_weight=".75"
+        android:text="@string/activity_alarm_button_snooze"
+        app:layout_constraintBottom_toTopOf="@+id/button_alarm_off"
+        tools:layout_editor_absoluteX="0dp" />
+
+    <Button
+        android:id="@+id/button_alarm_off"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginBottom="8dp"
+        android:layout_weight=".25"
+        android:text="@string/activity_alarm_button_off"
+        app:layout_constraintBottom_toTopOf="@+id/navigation"
+        tools:layout_editor_absoluteX="0dp" />
+
 
 </android.support.constraint.ConstraintLayout>

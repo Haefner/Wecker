@@ -1,4 +1,4 @@
-package hoschschulebochum.wecker;
+package hoschschulebochum.wecker.data;
 
 import android.location.Location;
 

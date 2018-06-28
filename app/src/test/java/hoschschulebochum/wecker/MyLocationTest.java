@@ -4,7 +4,7 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
-import hoschschulebochum.wecker.MyLocation;
+import hoschschulebochum.wecker.data.MyLocation;
 
 public class MyLocationTest {
 

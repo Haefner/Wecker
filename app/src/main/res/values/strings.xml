@@ -3,4 +3,6 @@
     <string name="title_home">Home</string>
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Übersicht</string>
+    <string name="activity_alarm_button_snooze">Snooze</string>
+    <string name="activity_alarm_button_off">Wecker ausschalten</string>
 </resources>
