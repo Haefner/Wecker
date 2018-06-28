@@ -13,11 +13,8 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Vibrator;
-import android.support.annotation.NonNull;
-import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -32,7 +29,7 @@ import hoschschulebochum.wecker.data.Wecker;
 
 public class WeckerMainActivity extends AppCompatActivity {
 
-    private TextView mTextMessage; //Felix Add
+    private TextView mTextMessage;
 
     //Wecker
     private PendingIntent pendingIntent;
@@ -52,25 +49,25 @@ public class WeckerMainActivity extends AppCompatActivity {
     private int snoozeCounter;
     private Ringtone ringtone;
 
-    private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
-            = new BottomNavigationView.OnNavigationItemSelectedListener() {
-
-        @Override
-        public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-            switch (item.getItemId()) {
-                case R.id.navigation_home:
-                    mTextMessage.setText(R.string.title_home);
-                    return true;
-                case R.id.navigation_dashboard:
-                    mTextMessage.setText(R.string.title_dashboard);
-                    return true;
-                case R.id.navigation_notifications:
-                    mTextMessage.setText(R.string.title_notifications);
-                    return true;
-            }
-            return false;
-        }
-    };
+//    private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
+//            = new BottomNavigationView.OnNavigationItemSelectedListener() {
+//
+//        @Override
+//        public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+//            switch (item.getItemId()) {
+//                case R.id.navigation_home:
+//                    mTextMessage.setText(R.string.title_home);
+//                    return true;
+//                case R.id.navigation_dashboard:
+//                    mTextMessage.setText(R.string.title_dashboard);
+//                    return true;
+//                case R.id.navigation_notifications:
+//                    mTextMessage.setText(R.string.title_notifications);
+//                    return true;
+//            }
+//            return false;
+//        }
+//    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,6 +115,7 @@ public class WeckerMainActivity extends AppCompatActivity {
     }
 
     private void setUpButtonListener() {
+        buttonOff.setBackgroundColor(Color.rgb(0, 150, 150));
         buttonOff.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -136,8 +134,10 @@ public class WeckerMainActivity extends AppCompatActivity {
     private void getIds()
     {
         mTextMessage = (TextView) findViewById(R.id.message);
-        BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
-        navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+
+//        //NavigationBar -- delete
+//        BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
+//        navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
 
         //Wecker
         alarmTimePicker = (TimePicker) findViewById(R.id.alarmTimePicker);
