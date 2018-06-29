@@ -201,7 +201,7 @@ public class WeckerMainActivity extends AppCompatActivity {
         long nextSnoozeTime = c.getTimeInMillis();
         // set new snooze alarm
         Intent intent = new Intent(getApplicationContext(),
-                SnoozeReceiver.class);
+                AlarmReceiver.class);
         intent.putExtra("SNOOZE_COUNTER", snoozeCounter);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
                 getApplicationContext(), RequestCode, intent,
