@@ -13,13 +13,24 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Vibrator;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.TimePicker;
+import android.widget.Toast;
 import android.widget.ToggleButton;
+
+import org.osmdroid.api.IMapController;
+import org.osmdroid.config.Configuration;
+import org.osmdroid.events.MapEventsReceiver;
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
+import org.osmdroid.util.GeoPoint;
+import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.MapEventsOverlay;
+import org.osmdroid.views.overlay.Marker;
 
 import java.util.Calendar;
 
@@ -48,6 +59,9 @@ public class WeckerMainActivity extends AppCompatActivity {
     private Vibrator vibrator;
     private int snoozeCounter;
     private Ringtone ringtone;
+    //Location
+    Marker startMarker;
+    MapView map = null;
 
 //    private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
 //            = new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -72,6 +86,10 @@ public class WeckerMainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //load/initialize the osmdroid configuration, this can be done
+        Context ctx = getApplicationContext();
+        Configuration.getInstance().load(ctx, PreferenceManager.getDefaultSharedPreferences(ctx));
+
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
         setContentView(R.layout.activity_wecker_main);
 
@@ -86,7 +104,8 @@ public class WeckerMainActivity extends AppCompatActivity {
         Log.d(TAG, "onCreate() - snoozeCounter = " + snoozeCounter);
         getIds();
         setUpButtonListener();
-
+        //-----
+        //SetUpWecker
         Uri alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
         if (alarmUri == null) {
             alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
@@ -103,15 +122,85 @@ public class WeckerMainActivity extends AppCompatActivity {
                 extras.putBoolean("START_ALARM" , false);
             }
         }
+        //-----
+        setUpLocation();
+
+    }
+
+    private void setUpLocation() {
+        map = (MapView) findViewById(R.id.map);
+        map.setTileSource(TileSourceFactory.MAPNIK);
+        map.setBuiltInZoomControls(true);
+        map.setMultiTouchControls(true);
+
+        //TODO GPS auslesen und übergeben
+        GeoPoint startPoint = new GeoPoint(51.446905, 7.271703);
+        IMapController mapController = map.getController();
+        mapController.setZoom(15);
+        mapController.setCenter(startPoint);
+
+        //https://github.com/osmdroid/osmdroid/wiki/Markers,-Lines-and-Polygons
+       // https://github.com/MKergall/osmbonuspack/wiki/Tutorial_0
+        final Marker startMarker = new Marker(map);
+        startMarker.setPosition(startPoint);
+        startMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+        startMarker.setTitle("Home");
+        map.getOverlays().add(startMarker);
+        //refresh the map
+        map.invalidate();
+
+
+        MapEventsReceiver mReceive = new MapEventsReceiver() {
+            @Override
+            public boolean singleTapConfirmedHelper(GeoPoint p) {
+              // Toast.makeText(getBaseContext(),p.getLatitude() + " - "+p.getLongitude(),Toast.LENGTH_LONG).show();
+
+                return false;
+            }
+
+            @Override
+            public boolean longPressHelper(GeoPoint p) {
+                Toast.makeText(getBaseContext(),"Ort Zuhause geändert: "+p.getLatitude() + " - "+p.getLongitude(),Toast.LENGTH_LONG).show();
+                startMarker.setPosition(p);
+                map.invalidate();
+                return false;
+            }
+        };
+
+
+
+        MapEventsOverlay OverlayEvents = new MapEventsOverlay(getBaseContext(), mReceive);
+        map.getOverlays().add(OverlayEvents);
+        //https://github.com/osmdroid/osmdroid/wiki/How-to-use-the-osmdroid-library
 
 
     }
+
+
 
     @Override
     public void onStart() {
         Log.d("runnable", "Weckermain on start");
         super.onStart();
         inst = this;
+    }
+
+    public void onResume(){
+        super.onResume();
+        //this will refresh the osmdroid configuration on resuming.
+        //if you make changes to the configuration, use
+        //SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        //Configuration.getInstance().load(this, PreferenceManager.getDefaultSharedPreferences(this));
+        map.onResume(); //needed for compass, my location overlays, v6.0.0 and up
+    }
+
+    public void onPause(){
+        super.onPause();
+        //this will refresh the osmdroid configuration on resuming.
+        //if you make changes to the configuration, use
+        //SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        //Configuration.getInstance().save(this, prefs);
+        map.onPause();  //needed for compass, my location overlays, v6.0.0 and up
     }
 
     private void setUpButtonListener() {
