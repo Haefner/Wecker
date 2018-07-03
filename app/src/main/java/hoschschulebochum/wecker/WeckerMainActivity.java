@@ -35,8 +35,8 @@ import org.osmdroid.views.overlay.Marker;
 import java.util.Calendar;
 
 import hoschschulebochum.wecker.data.Dateimanager;
+import hoschschulebochum.wecker.data.MyLocation;
 import hoschschulebochum.wecker.data.UserData;
-import hoschschulebochum.wecker.data.Wecker;
 
 public class WeckerMainActivity extends AppCompatActivity {
 
@@ -63,25 +63,8 @@ public class WeckerMainActivity extends AppCompatActivity {
     Marker startMarker;
     MapView map = null;
 
-//    private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
-//            = new BottomNavigationView.OnNavigationItemSelectedListener() {
-//
-//        @Override
-//        public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-//            switch (item.getItemId()) {
-//                case R.id.navigation_home:
-//                    mTextMessage.setText(R.string.title_home);
-//                    return true;
-//                case R.id.navigation_dashboard:
-//                    mTextMessage.setText(R.string.title_dashboard);
-//                    return true;
-//                case R.id.navigation_notifications:
-//                    mTextMessage.setText(R.string.title_notifications);
-//                    return true;
-//            }
-//            return false;
-//        }
-//    };
+    private UserData userData;
+    SharedPreferences mPrefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,25 +76,56 @@ public class WeckerMainActivity extends AppCompatActivity {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
         setContentView(R.layout.activity_wecker_main);
 
-        //   Intent myIntent = new Intent(this, AlarmReceiver.class);
-        // pendingIntent = PendingIntent.getBroadcast(this, 0, myIntent, 0);
+        mPrefs= getSharedPreferences("Wecker",Context.MODE_PRIVATE);
+        userData = new Dateimanager().loadUserData(mPrefs);
+        //Bei der erst Benutzung der App können die UserData null sein
+        if(userData==null)
+        {
+            userData= new UserData();
+        }
 
+        Log.d(TAG, "onCreate() - snoozeCounter = " + snoozeCounter);
+        getIds();
+        loadAlarmSettings_SetToGui();
+        setUpWecker();
+        setUpButtonListener();
+        setUpLocation();
+
+    }
+
+    /**
+     * lädt die persistierten Daten und fügt setzt diese auf der GUI
+     */
+    private void loadAlarmSettings_SetToGui()
+    {
+        alarmTimePicker.setHour(userData.getFirstAlarm().getHour());
+        alarmTimePicker.setMinute(userData.getFirstAlarm().getMinutes());
+    }
+
+    private void setUpWecker()
+    {
         // get the snoozeCounter value from the intent
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
             snoozeCounter = extras.getInt("SNOOZE_COUNTER");
         }
-        Log.d(TAG, "onCreate() - snoozeCounter = " + snoozeCounter);
-        getIds();
-        setUpButtonListener();
-        //-----
-        //SetUpWecker
+
         Uri alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
         if (alarmUri == null) {
             alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         }
         ringtone = RingtoneManager.getRingtone(getApplicationContext(), alarmUri);
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+
+        alarmTimePicker.setOnTimeChangedListener(new TimePicker.OnTimeChangedListener() {
+            @Override
+            public void onTimeChanged(TimePicker view, int hourOfDay, int minute) {
+                userData.getFirstAlarm().setHour(hourOfDay);
+                userData.getFirstAlarm().setMinutes(minute);
+                saveAlarm();
+            }
+        });
+
         Log.d("runnable", "pruefeAlarm");
         if (extras != null) {
             boolean start_alarm = extras.getBoolean("START_ALARM");
@@ -122,9 +136,6 @@ public class WeckerMainActivity extends AppCompatActivity {
                 extras.putBoolean("START_ALARM" , false);
             }
         }
-        //-----
-        setUpLocation();
-
     }
 
     private void setUpLocation() {
@@ -133,14 +144,17 @@ public class WeckerMainActivity extends AppCompatActivity {
         map.setBuiltInZoomControls(true);
         map.setMultiTouchControls(true);
 
-        //TODO GPS auslesen und übergeben
-        GeoPoint startPoint = new GeoPoint(51.446905, 7.271703);
+        //TODO initial wird immer bei Neuanlage des Weckers als Lokation die Hochschule Bochum gesetzt
+        //TODO Statdessen sollte, sofern der Benuter nichts gesetzt hat, die GPS koordinaten genommen werden
+
+        //Gespeicherte lokation Laden und die Lokation in der Map Laden
+        MyLocation home = userData.getFirstAlarm().getHome();
+        GeoPoint startPoint = new GeoPoint(home.getLatitude(), home.getLongitude());
         IMapController mapController = map.getController();
         mapController.setZoom(15);
         mapController.setCenter(startPoint);
 
-        //https://github.com/osmdroid/osmdroid/wiki/Markers,-Lines-and-Polygons
-       // https://github.com/MKergall/osmbonuspack/wiki/Tutorial_0
+        //Fügt den Marker, den Markierten Punkt hinzu
         final Marker startMarker = new Marker(map);
         startMarker.setPosition(startPoint);
         startMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
@@ -149,12 +163,10 @@ public class WeckerMainActivity extends AppCompatActivity {
         //refresh the map
         map.invalidate();
 
-
+        //Fügt ein Event hinzu, dass auf ein langes klicken auf der Karte reagiert um den Marker zu verschieben
         MapEventsReceiver mReceive = new MapEventsReceiver() {
             @Override
             public boolean singleTapConfirmedHelper(GeoPoint p) {
-              // Toast.makeText(getBaseContext(),p.getLatitude() + " - "+p.getLongitude(),Toast.LENGTH_LONG).show();
-
                 return false;
             }
 
@@ -163,16 +175,13 @@ public class WeckerMainActivity extends AppCompatActivity {
                 Toast.makeText(getBaseContext(),"Ort Zuhause geändert: "+p.getLatitude() + " - "+p.getLongitude(),Toast.LENGTH_LONG).show();
                 startMarker.setPosition(p);
                 map.invalidate();
+                userData.getFirstAlarm().setHome(new MyLocation("Home", p.getLatitude(),p.getLongitude()));
+                saveAlarm();
                 return false;
             }
         };
-
-
-
         MapEventsOverlay OverlayEvents = new MapEventsOverlay(getBaseContext(), mReceive);
         map.getOverlays().add(OverlayEvents);
-        //https://github.com/osmdroid/osmdroid/wiki/How-to-use-the-osmdroid-library
-
 
     }
 
@@ -224,10 +233,6 @@ public class WeckerMainActivity extends AppCompatActivity {
     {
         mTextMessage = (TextView) findViewById(R.id.message);
 
-//        //NavigationBar -- delete
-//        BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
-//        navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
-
         //Wecker
         alarmTimePicker = (TimePicker) findViewById(R.id.alarmTimePicker);
         alarmToggle = (ToggleButton) findViewById(R.id.alarmToggle);
@@ -238,26 +243,36 @@ public class WeckerMainActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * Aktivieren deaktivieren des Weckers speichern.
+     * @param view
+     */
     public void onToggleClicked(View view) {
         if (alarmToggle.isChecked()) {
             Log.d("MyActivity", "Alarm On");
-            saveAlarmDate(true);
+            saveAlarmAktive(true);
 
         } else {
-            saveAlarmDate(false);
+            saveAlarmAktive(false);
             Log.d("MyActivity", "Alarm Off");
         }
     }
 
-    private void saveAlarmDate(Boolean angeschaltet) {
-        UserData userData = new UserData();
-        userData.removeAll();
-        Log.d("WeckerMainActivity", "saveAlarmDate with " + alarmTimePicker.getHour() + ":" + alarmTimePicker.getMinute());
-        Wecker wecker = new Wecker(alarmTimePicker.getHour(), alarmTimePicker.getMinute(), angeschaltet );
-        userData.addAlarm(wecker);
-        SharedPreferences mPrefs= getSharedPreferences("Wecker",Context.MODE_PRIVATE);
-        new Dateimanager().saveUserData(mPrefs,userData);
+    private void saveAlarmAktive(Boolean angeschaltet) {
+        userData.getFirstAlarm().setAngeschaltet(angeschaltet);
+        Log.d("WeckerMainActivity", "saveAlarmAktive with " + alarmTimePicker.getHour() + ":" + alarmTimePicker.getMinute());
+        saveAlarm();
         startService(new Intent(this, AlarmService.class));
+
+    }
+
+    /**
+     * Speichert die Alarmeinstellung und aktiviert, deaktiviert das nächste Weckerklingeln
+     */
+    public void saveAlarm() {
+        new Dateimanager().saveUserData(mPrefs, userData);
+        //TODO Alarm starten?
+
     }
 
 

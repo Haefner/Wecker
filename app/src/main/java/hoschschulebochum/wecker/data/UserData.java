@@ -15,9 +15,6 @@ import java.util.List;
  */
 public class UserData implements Serializable {
 
-
-    //private int userId;
-    // private Notification lastNotification;
     private List<Wecker> alarmList = new ArrayList<>();
 
 
@@ -31,6 +28,13 @@ public class UserData implements Serializable {
 
     public void removeAll() {
         alarmList.clear();
+    }
+
+    public Wecker getFirstAlarm() {
+        if (alarmList.isEmpty()) {
+            alarmList.add(new Wecker(6, 0, false));
+        }
+        return alarmList.get(0);
     }
 
 

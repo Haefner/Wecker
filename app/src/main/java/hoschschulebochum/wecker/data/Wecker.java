@@ -13,30 +13,30 @@ import java.util.List;
 public class Wecker implements Serializable {
 
     //Allgemeine Einstellungen zu einem Wecker
-    private int hour;
-    private int minutes;
+    private int hour=6;
+    private int minutes=0;
     private final int SekondsToSnooze = 10;
     private boolean settingsShouldRingAtHome = true;
     private boolean settingsShouldRingOnTheWay = true;
     private boolean settingsSouldSnoozeWhenLigthChange = false;
     private boolean settingsShouldSnoozeWhenStartToMove = false;
     private boolean settingsShouldNotRingByConflictsInCalender = false;
-    private MyLocation home;
+    private MyLocation home = new MyLocation("Home" , 51.447709, 7.270900);
     private List<Wochentag> tage = new ArrayList<>();
 
     private boolean angeschaltet = false;
 
     public Wecker(int hour, int minutes, boolean angeschaltet) {
-        this.hour = hour;
-        this.minutes = minutes;
-        this.angeschaltet = angeschaltet;
+        this.setHour(hour);
+        this.setMinutes(minutes);
+        this.setAngeschaltet(angeschaltet);
         tage.addAll(Arrays.asList(Wochentag.values()));
     }
 
     public Wecker(List<Wochentag> wochentage, int hour, int minutes, boolean angeschaltet) {
-        this.hour = hour;
-        this.minutes = minutes;
-        this.angeschaltet = angeschaltet;
+        this.setHour(hour);
+        this.setMinutes(minutes);
+        this.setAngeschaltet(angeschaltet);
         tage.addAll(Arrays.asList(Wochentag.values()));
         tage.addAll(wochentage);
     }
@@ -63,8 +63,8 @@ public class Wecker implements Serializable {
         //___________
         //Wenn am aktuellen Tag schon die Weckzeit vorbei ist, suche den nächsten Tag, an dem der Wecker klingeln soll
         Log.d("Wecker", "Vergleiche aktuelle Uhrzeit mit der des Weckers. Die aktuelle Uhrzeit lautet " + h+":"+m
-                + ". Die des Weckers ist " + hour + ":" + minutes);
-        if(h>=hour &&m>=minutes)
+                + ". Die des Weckers ist " + getHour() + ":" + getMinutes());
+        if(h>= getHour() &&m>= getMinutes())
         {
             //diesen Tag hat der Wecker schon geklingelt- Suche für den nächsten Tag
             Log.d("Wecker", "Diesen Tag hat der Wecker schon geklingelt - Prüfe den nächsten Tag. Dieser Wochentag lautet " + tag);
@@ -90,7 +90,7 @@ public class Wecker implements Serializable {
         if(tageBisZumKlingeln==0)
         {
             //Wenn am aktuellen Tag schon die Weckzeit vorbei ist, klingel erst in 7 Tagen wieder
-            if(h>=hour &&m>=minutes)
+            if(h>= getHour() &&m>= getMinutes())
             {tageBisZumKlingeln=7;}
         }
         Log.d("Wecker", "Das sind "+tageBisZumKlingeln+ " Tage bis der Wecker erneut klingeln");
@@ -99,8 +99,8 @@ public class Wecker implements Serializable {
 
         Calendar calendar2 = GregorianCalendar.getInstance(); // creates a new calendar instance
         //Weckzeit setzen
-        calendar2.set(Calendar.HOUR_OF_DAY, hour);
-        calendar2.set(Calendar.MINUTE,minutes);
+        calendar2.set(Calendar.HOUR_OF_DAY, getHour());
+        calendar2.set(Calendar.MINUTE, getMinutes());
         calendar2.add(Calendar.DAY_OF_MONTH,tageBisZumKlingeln);
 
         Date time = calendar2.getTime();
@@ -110,8 +110,8 @@ public class Wecker implements Serializable {
     }
 
     public void setTime(int hour, int minutes) {
-        this.hour = hour;
-        this.minutes = minutes;
+        this.setHour(hour);
+        this.setMinutes(minutes);
     }
 
     public int getSekondsToSnooze() {
@@ -119,7 +119,7 @@ public class Wecker implements Serializable {
     }
 
     public Boolean getSettingsShouldRingAtHome() {
-        return settingsShouldRingAtHome;
+        return isSettingsShouldRingAtHome();
     }
 
     public void setSettingsShouldRingAtHome(Boolean settingsShouldRingAtHome) {
@@ -127,7 +127,7 @@ public class Wecker implements Serializable {
     }
 
     public Boolean getSettingsShouldRingOnTheWay() {
-        return settingsShouldRingOnTheWay;
+        return isSettingsShouldRingOnTheWay();
     }
 
     public void setSettingsShouldRingOnTheWay(Boolean settingsShouldRingOnTheWay) {
@@ -135,7 +135,7 @@ public class Wecker implements Serializable {
     }
 
     public Boolean getSettingsSouldSnoozeWhenLigthChange() {
-        return settingsSouldSnoozeWhenLigthChange;
+        return isSettingsSouldSnoozeWhenLigthChange();
     }
 
     public void setSettingsSouldSnoozeWhenLigthChange(Boolean settingsSouldSnoozeWhenLigthChange) {
@@ -143,7 +143,7 @@ public class Wecker implements Serializable {
     }
 
     public Boolean getSettingsShouldSnoozeWhenStartToMove() {
-        return settingsShouldSnoozeWhenStartToMove;
+        return isSettingsShouldSnoozeWhenStartToMove();
     }
 
     public void setSettingsShouldSnoozeWhenStartToMove(Boolean settingsShouldSnoozeWhenStartToMove) {
@@ -159,6 +159,8 @@ public class Wecker implements Serializable {
     }
 
     public MyLocation getHome() {
+        if(home==null)
+        {return new MyLocation("Home", 51.446905, 7.271703);}
         return home;
     }
 
@@ -172,5 +174,53 @@ public class Wecker implements Serializable {
 
     public void setAngeschaltet(boolean angeschaltet) {
         this.angeschaltet = angeschaltet;
+    }
+
+    public int getHour() {
+        return hour;
+    }
+
+    public void setHour(int hour) {
+        this.hour = hour;
+    }
+
+    public int getMinutes() {
+        return minutes;
+    }
+
+    public void setMinutes(int minutes) {
+        this.minutes = minutes;
+    }
+
+    public boolean isSettingsShouldRingAtHome() {
+        return settingsShouldRingAtHome;
+    }
+
+    public void setSettingsShouldRingAtHome(boolean settingsShouldRingAtHome) {
+        this.settingsShouldRingAtHome = settingsShouldRingAtHome;
+    }
+
+    public boolean isSettingsShouldRingOnTheWay() {
+        return settingsShouldRingOnTheWay;
+    }
+
+    public void setSettingsShouldRingOnTheWay(boolean settingsShouldRingOnTheWay) {
+        this.settingsShouldRingOnTheWay = settingsShouldRingOnTheWay;
+    }
+
+    public boolean isSettingsSouldSnoozeWhenLigthChange() {
+        return settingsSouldSnoozeWhenLigthChange;
+    }
+
+    public void setSettingsSouldSnoozeWhenLigthChange(boolean settingsSouldSnoozeWhenLigthChange) {
+        this.settingsSouldSnoozeWhenLigthChange = settingsSouldSnoozeWhenLigthChange;
+    }
+
+    public boolean isSettingsShouldSnoozeWhenStartToMove() {
+        return settingsShouldSnoozeWhenStartToMove;
+    }
+
+    public void setSettingsShouldSnoozeWhenStartToMove(boolean settingsShouldSnoozeWhenStartToMove) {
+        this.settingsShouldSnoozeWhenStartToMove = settingsShouldSnoozeWhenStartToMove;
     }
 }
