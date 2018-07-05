@@ -455,7 +455,7 @@ public class WeckerMainActivity extends AppCompatActivity {
             //Warte kurz, dass der Locationlistener Zeit hat die Location auszulesen
             try {
                 synchronized (this){
-                wait(1000);}
+                wait(10000);}
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
