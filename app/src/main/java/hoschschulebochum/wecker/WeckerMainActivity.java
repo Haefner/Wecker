@@ -81,6 +81,13 @@ public class WeckerMainActivity extends AppCompatActivity {
     private double aktuelleLatitude;
     private double aktuelleLongitude;
 
+    /**
+     * Gibt wieder ob das Telefon Momentan klingeln soll
+     */
+    private boolean doesRingAtMoment=false;
+    private float anfangsLichtwert=-100;
+    private float aktuellerLichtwert=-100;
+
 
     private UserData userData;
     SharedPreferences mPrefs;
@@ -231,6 +238,9 @@ public class WeckerMainActivity extends AppCompatActivity {
 
                         break;
                     case Sensor.TYPE_LIGHT:
+                        lock.writeLock().lock();
+                        aktuellerLichtwert=event.values[0];
+                        lock.writeLock().unlock();
                         break;
                 }
 
@@ -366,6 +376,9 @@ public class WeckerMainActivity extends AppCompatActivity {
      * button.
      */
     private void alarmOff() {
+        lock.writeLock().lock();
+        doesRingAtMoment=false;
+        lock.writeLock().unlock();
         new StopAlarm().execute();
         Log.d(TAG, "alarmOff() - snoozeCounter = " + snoozeCounter);
         // new PostEventTask().execute(); FIXME
@@ -379,6 +392,9 @@ public class WeckerMainActivity extends AppCompatActivity {
      * the "Snooze" button.
      */
     private void alarmSnooze() {
+        lock.writeLock().lock();
+        doesRingAtMoment=false;
+        lock.writeLock().unlock();
         new StopAlarm().execute();
         snoozeCounter++;
         Log.d(TAG, "alarmSnooze() - snoozeCounter = " + snoozeCounter);
@@ -445,16 +461,57 @@ public class WeckerMainActivity extends AppCompatActivity {
         @Override
         protected Object doInBackground(Object... params) {
 
-
            if(shouldRing())
-           {ringtone.play();}
+           {
+               anfangsLichtwert=aktuellerLichtwert;
+               lock.writeLock().lock();
+               doesRingAtMoment=true;
+               lock.writeLock().unlock();
+               ringtone.play();
+           }
 
             Log.d(SoundAlarm.class.getSimpleName(), "Alarm received!");
 
            if(shouldVibrate()){
             long[] pattern = { 1000, 1000 };
             vibrator.vibrate(pattern, 0);}
+
+            //klingel so lange, bis Licht sich stark ändert. Dann gehe in den Snooze
+            while(doesRingAtMoment)
+            {
+                float aktuellerLichtwertKopie=aktuellerLichtwert;
+             // Entweder eine deutliche Differenz im Lichtbereich, oder der Lichtwert ist von ganz Dunkel ganz hell geworden (Licht angegangen, oder Handy aus tasche geholt, oder umgekehrt
+                if(lichtChanged(anfangsLichtwert,aktuellerLichtwertKopie) )
+                {
+                    lock.writeLock().lock();
+                    doesRingAtMoment=false;
+                    lock.writeLock().unlock();
+                    alarmSnooze();
+                }
+
+            }
+
+
             return null;
+        }
+
+        private boolean lichtChanged(float startwert, float aktuellerLichtwert)
+        {
+            //Licht ansschalten, aus der Tasche gehohlt
+            if(startwert<20 && aktuellerLichtwert>40)
+            {
+                Log.d(SoundAlarm.class.getSimpleName(), "Licht angeschaltet. Startwert=  " + startwert +" aktuellerWert= "+ aktuellerLichtwert);
+                return true;
+            }
+            //Sensor mit der Hand abdecken
+            if(startwert>40 && aktuellerLichtwert<10)
+            {
+                Log.d(SoundAlarm.class.getSimpleName(), "Sensor mit der Hand angedeckt. Startwert=  " + startwert +" aktuellerWert= "+ aktuellerLichtwert);
+                return true;
+            }
+
+            return false;
+
         }
 
         private boolean shouldRing() {
@@ -464,6 +521,7 @@ public class WeckerMainActivity extends AppCompatActivity {
             {
                 Log.e(SoundAlarm.class.getSimpleName(), "Shared Preferenz Userdata ist null");
             }
+
             //Warte kurz, dass der Locationlistener Zeit hat die Location auszulesen
             try {
                 synchronized (this){
