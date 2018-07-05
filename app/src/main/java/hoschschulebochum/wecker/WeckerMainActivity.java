@@ -144,6 +144,7 @@ public class WeckerMainActivity extends AppCompatActivity {
             public void onTimeChanged(TimePicker view, int hourOfDay, int minute) {
                 userData.getFirstAlarm().setHour(hourOfDay);
                 userData.getFirstAlarm().setMinutes(minute);
+                alarmToogleAusschalten();
                 saveAlarm();
             }
         });
@@ -198,6 +199,7 @@ public class WeckerMainActivity extends AppCompatActivity {
                 startMarker.setPosition(p);
                 map.invalidate();
                 userData.getFirstAlarm().setHome(new MyLocation("Home", p.getLatitude(),p.getLongitude()));
+                alarmToogleAusschalten();
                 saveAlarm();
                 return false;
             }
@@ -327,6 +329,16 @@ public class WeckerMainActivity extends AppCompatActivity {
             saveAlarmAktive(false);
             Log.d("MyActivity", "Alarm Off");
         }
+    }
+
+    /**
+     * Finden Änderungen an der Gui statt, soll der Wecker ausgeschaltet werden, damit im Hintergrund
+     * nicht zu oft der Alarmmanager neu aufgesetzt werden muss.
+     */
+    public void alarmToogleAusschalten()
+    {
+        alarmToggle.setChecked(false);
+        saveAlarmAktive(false);
     }
 
     private void saveAlarmAktive(Boolean angeschaltet) {
