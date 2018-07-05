@@ -101,6 +101,7 @@ public class Wecker implements Serializable {
         //Weckzeit setzen
         calendar2.set(Calendar.HOUR_OF_DAY, getHour());
         calendar2.set(Calendar.MINUTE, getMinutes());
+        calendar2.set(Calendar.SECOND,0);
         calendar2.add(Calendar.DAY_OF_MONTH,tageBisZumKlingeln);
 
         Date time = calendar2.getTime();

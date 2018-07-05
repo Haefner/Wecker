@@ -36,8 +36,8 @@ public class AlarmReceiver extends BroadcastReceiver {
         newIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
 
-        context.startActivity(newIntent);
         //Löse aus, dass der Alarm ertönt
+        context.startActivity(newIntent);
 
     }
 

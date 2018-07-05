@@ -1,12 +1,19 @@
 package hoschschulebochum.wecker;
 
+import android.Manifest;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.location.LocationManager;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
@@ -14,6 +21,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -34,11 +42,15 @@ import org.osmdroid.views.overlay.Marker;
 
 import java.util.Calendar;
 
+import hoschschulebochum.souldRing.MyLocationListener;
 import hoschschulebochum.wecker.data.Dateimanager;
 import hoschschulebochum.wecker.data.MyLocation;
 import hoschschulebochum.wecker.data.UserData;
 
 public class WeckerMainActivity extends AppCompatActivity {
+
+    private static java.util.concurrent.locks.ReadWriteLock lock = new java.util.concurrent.locks.ReentrantReadWriteLock();
+
 
     private TextView mTextMessage;
 
@@ -62,6 +74,13 @@ public class WeckerMainActivity extends AppCompatActivity {
     //Location
     Marker startMarker;
     MapView map = null;
+    SensorManager sensorManager;
+    SensorEventListener sensorEventListener;
+    LocationManager locationManager;
+    MyLocationListener locationListener;
+    private double aktuelleLatitude;
+    private double aktuelleLongitude;
+
 
     private UserData userData;
     SharedPreferences mPrefs;
@@ -89,7 +108,10 @@ public class WeckerMainActivity extends AppCompatActivity {
         loadAlarmSettings_SetToGui();
         setUpWecker();
         setUpButtonListener();
+        setUpSensorManager();
         setUpLocation();
+        registerListener();
+
 
     }
 
@@ -151,7 +173,7 @@ public class WeckerMainActivity extends AppCompatActivity {
         MyLocation home = userData.getFirstAlarm().getHome();
         GeoPoint startPoint = new GeoPoint(home.getLatitude(), home.getLongitude());
         IMapController mapController = map.getController();
-        mapController.setZoom(15);
+        mapController.setZoom(16);
         mapController.setCenter(startPoint);
 
         //Fügt den Marker, den Markierten Punkt hinzu
@@ -183,8 +205,57 @@ public class WeckerMainActivity extends AppCompatActivity {
         MapEventsOverlay OverlayEvents = new MapEventsOverlay(getBaseContext(), mReceive);
         map.getOverlays().add(OverlayEvents);
 
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        locationListener = new MyLocationListener(this,getApplicationContext(), getAktuelleLatitude(), getAktuelleLongitude());
+
+    }
+    private void setUpSensorManager() {
+        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        sensorEventListener = new SensorEventListener() {
+            @Override
+            public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+            }
+
+            @Override
+            public void onSensorChanged(SensorEvent event) {
+                switch (event.sensor.getType()) {
+                    //Beschleunigungssensor Drehmoment Winkelgeschwindigkeit
+                    case Sensor.TYPE_GYROSCOPE:
+
+                        break;
+                    //Bewegungssensor Liniar
+                    case Sensor.TYPE_ACCELEROMETER:
+
+                        break;
+                    case Sensor.TYPE_LIGHT:
+                        break;
+                }
+
+            }
+        };
+
     }
 
+    private void registerListener() {
+            sensorManager.registerListener(sensorEventListener, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), 1000);
+            sensorManager.registerListener(sensorEventListener, sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE), 1000);
+            sensorManager.registerListener(sensorEventListener, sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT), 1000);
+            //Prüfe ob Berechtigung für GPS vorliegt
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(WeckerMainActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+                return;
+            }
+            //Pruefe ob GPS aktiviert ist
+            if (!locationManager
+                    .isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                return;
+            }
+            //minDistance Angabe in Meter
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 30, locationListener);
+
+    }
 
 
     @Override
@@ -329,6 +400,29 @@ public class WeckerMainActivity extends AppCompatActivity {
         startService(intent);
     }
 
+    public double getAktuelleLatitude() {
+        return aktuelleLatitude;
+    }
+
+    public double getAktuelleLongitude() {
+        return aktuelleLongitude;
+    }
+
+
+    public void setAktuelleLongitude(double aktuelleLongitude) {
+        lock.writeLock().lock();
+        this.aktuelleLongitude = aktuelleLongitude;
+        lock.writeLock().unlock();
+
+    }
+
+    public void setAktuelleLatitude(double aktuelleLatitude) {
+        lock.writeLock().lock();
+        this.aktuelleLatitude = aktuelleLatitude;
+        lock.writeLock().unlock();
+    }
+
+
     /**
      * AsynTask used for starting the alarm sound and vibration.
      *
@@ -340,15 +434,48 @@ public class WeckerMainActivity extends AppCompatActivity {
         protected Object doInBackground(Object... params) {
 
 
-            ringtone.play();
+           if(shouldRing())
+           {ringtone.play();}
 
-            Log.d(TAG, "Alarm received!");
+            Log.d(SoundAlarm.class.getSimpleName(), "Alarm received!");
 
+           if(shouldVibrate()){
             long[] pattern = { 1000, 1000 };
-            vibrator.vibrate(pattern, 0);
+            vibrator.vibrate(pattern, 0);}
             return null;
         }
+
+        private boolean shouldRing() {
+            Log.d(SoundAlarm.class.getSimpleName(), "Prüfe ob nutzer Zuhause ist");
+            //Prüft ob der Benutzer zuhause ist
+            if(userData==null)
+            {
+                Log.e(SoundAlarm.class.getSimpleName(), "Shared Preferenz Userdata ist null");
+            }
+            //Warte kurz, dass der Locationlistener Zeit hat die Location auszulesen
+            try {
+                synchronized (this){
+                wait(1000);}
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            Log.d(SoundAlarm.class.getSimpleName(), "aktuelleLatitude " + getAktuelleLatitude() + getAktuelleLongitude());
+            boolean benutzerZuhause= userData.getFirstAlarm().getHome().doesLocationFit(getAktuelleLatitude(), getAktuelleLongitude());
+
+            Log.d(SoundAlarm.class.getSimpleName(), "Benutzer ist Zuhause: " + benutzerZuhause );
+            //Klingel nur, wenn Benutzer zu Hause ist
+            return benutzerZuhause;
+        }
+        private boolean shouldVibrate() {
+            return true;
+        }
+
+
     }
+
+
+
+
 
     /**
      * AsynTask used for stopping the alarm sound and vibration.
@@ -363,4 +490,5 @@ public class WeckerMainActivity extends AppCompatActivity {
             return null;
         }
     }
+
 }

@@ -108,7 +108,6 @@ public class AlarmService extends Service {
         if (alarmInfo.getNextAlarmTime()!=null) {
             Log.d("AlarmService", "Nächste Alarmzeit " + alarmInfo.getNextAlarmTime().getTime());
             long waketime=alarmInfo.getNextAlarmTime().getTime();
-            Log.d("runnable", "nächster Alarm klingelt in " + waketime + "Milisekunden");
             alarmManager.set(AlarmManager.RTC_WAKEUP, waketime, pendingIntent);
 
         }

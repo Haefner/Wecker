@@ -1,14 +1,7 @@
 package hoschschulebochum.souldRing;
 
 public class ShouldRing implements IShouldRing {
-    @Override
-    public boolean doesLocationFit() {
 
-
-
-
-        return true;
-    }
 
     @Override
     public boolean doesPersonStartToMove() {

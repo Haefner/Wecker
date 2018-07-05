@@ -22,7 +22,12 @@ public class MyLocation {
     }
 
 
-
+    /**
+     *  Vergleicht, ob sich die persistierte Lokation im Umkreis von 500 Meter zur aktuellen Position befindet.
+     * @param latitude GPS koordinaten der aktuellen Position
+     * @param longitude latitude GPS koordinaten der aktuellen Position
+     * @return true, wenn Orte nahe an einander sind, sonst false
+     */
     public boolean doesLocationFit(double latitude, double longitude)
     {
          double entfernung = distance(this.latitude, this.longitude, latitude,longitude, 'K')*1000;
