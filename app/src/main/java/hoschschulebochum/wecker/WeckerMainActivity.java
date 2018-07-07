@@ -41,7 +41,9 @@ import org.osmdroid.views.overlay.MapEventsOverlay;
 import org.osmdroid.views.overlay.Marker;
 
 import java.util.Calendar;
+import java.util.concurrent.ExecutionException;
 
+import hoschschulebochum.ContextAuswertung.WetterContext;
 import hoschschulebochum.souldRing.MyLocationListener;
 import hoschschulebochum.wecker.data.Dateimanager;
 import hoschschulebochum.wecker.data.MyLocation;
@@ -61,6 +63,8 @@ public class WeckerMainActivity extends AppCompatActivity {
     private ToggleButton alarmToggle;
     Button buttonOff;
     Button buttonSnooze;
+
+    private TextView alarmText;
     // alarm settings
     public static final int snoozeTimeInMinutes = 1;
 
@@ -129,6 +133,18 @@ public class WeckerMainActivity extends AppCompatActivity {
     {
         alarmTimePicker.setHour(userData.getFirstAlarm().getHour());
         alarmTimePicker.setMinute(userData.getFirstAlarm().getMinutes());
+        WetterContext wetterContext = new WetterContext();
+        AsyncTask<Object, Void, String> execute = wetterContext.execute();
+        String info="";
+        try {
+            info= execute.get();
+            alarmText.setText(info);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+
     }
 
     private void setUpWecker()
@@ -315,6 +331,7 @@ public class WeckerMainActivity extends AppCompatActivity {
     private void getIds()
     {
         mTextMessage = (TextView) findViewById(R.id.message);
+        alarmText =(TextView) findViewById(R.id.alarmText);
 
         //Wecker
         alarmTimePicker = (TimePicker) findViewById(R.id.alarmTimePicker);

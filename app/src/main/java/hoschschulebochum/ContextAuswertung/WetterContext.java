@@ -1,17 +1,19 @@
 package hoschschulebochum.ContextAuswertung;
 
 
+import android.os.AsyncTask;
+
 import net.aksingh.owmjapis.api.APIException;
 import net.aksingh.owmjapis.core.OWM;
 import net.aksingh.owmjapis.model.CurrentWeather;
 
-public class Context implements IContext {
-    @Override
+public  class WetterContext extends AsyncTask<Object,Void,String> {
     public boolean hasConflictWithCalender() {
         return false;
     }
 
-    public String getWeatherInformation() {// declaring object of "OWM" class
+    public String doInBackground(Object... objcts) {// declaring object of "OWM" class
+
         OWM owm = new OWM("16bba3091a60d3296e7f3040d78ae11b"); //Lisas Key
         String wetter = "";
 
@@ -23,14 +25,14 @@ public class Context implements IContext {
             System.out.println("City: " + cwd.getCityName());
 
             double kelvinAktuell = cwd.getMainData().getTemp();
-            double celsiusAktuell = kelvinAktuell - 273.15;
+            int celsiusAktuell = (int) (kelvinAktuell - 273.15);
             double kelvinMax = cwd.getMainData().getTempMax();
-            double celsiusMax = kelvinMax - 273.15;
+            int celsiusMax = (int) (kelvinMax - 273.15);
             // printing the max./min. temperature
-            System.out.println("Aktuelle Temperature: " + celsiusAktuell
+            System.out.println("Aktuelle: " + celsiusAktuell
                     + " / Maximale Temperatur" + celsiusMax + "\'C");
-            wetter = cwd.getCityName() + " aktuelle Temperatur: " + celsiusAktuell
-                    + " maximale Temperatur: " + celsiusMax;
+            wetter = "aktuelle " + celsiusAktuell
+                    + " °C maximale " + celsiusMax+" °C";
         } catch (APIException e) {
             e.printStackTrace();
         }
@@ -38,16 +40,6 @@ public class Context implements IContext {
 
     }
 
-
-    @Override
-    public boolean isBatteryStandHighEnough() {
-        return false;
-    }
-
-    @Override
-    public String getTimeUntilTheNextRing() {
-        return "noch nicht implementiert";
-    }
 }
 
 
