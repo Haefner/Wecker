@@ -26,6 +26,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -63,6 +64,8 @@ public class WeckerMainActivity extends AppCompatActivity {
     private ToggleButton alarmToggle;
     Button buttonOff;
     Button buttonSnooze;
+    Switch durchSchuettelnDeaktivierenSwitch;
+    Switch durchLichtDeaktivierenSwitch;
 
     private TextView alarmText;
     // alarm settings
@@ -146,6 +149,8 @@ public class WeckerMainActivity extends AppCompatActivity {
         } catch (ExecutionException e) {
             e.printStackTrace();
         }
+        durchLichtDeaktivierenSwitch.setChecked(userData.getFirstAlarm().isDurchLichtDeaktivierenSwitch());
+        durchSchuettelnDeaktivierenSwitch.setChecked(userData.getFirstAlarm().isDurchSchuettelnDeaktivierenSwitch());
 
     }
 
@@ -332,6 +337,20 @@ public class WeckerMainActivity extends AppCompatActivity {
                 alarmSnooze();
             }
         });
+        durchSchuettelnDeaktivierenSwitch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                userData.getFirstAlarm().setDurchSchuettelnDeaktivierenSwitch(durchSchuettelnDeaktivierenSwitch.isChecked());
+                saveAlarm();
+            }
+        });
+        durchLichtDeaktivierenSwitch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                userData.getFirstAlarm().setDurchLichtDeaktivierenSwitch(durchLichtDeaktivierenSwitch.isChecked());
+                saveAlarm();
+            }
+        });
     }
 
     private void getIds()
@@ -345,6 +364,8 @@ public class WeckerMainActivity extends AppCompatActivity {
 
          buttonOff = (Button) findViewById(R.id.button_alarm_off);
          buttonSnooze = (Button) findViewById(R.id.button_alarm_snooze);
+         durchLichtDeaktivierenSwitch=(Switch) findViewById(R.id.deaktiviertLicht);
+         durchSchuettelnDeaktivierenSwitch=(Switch) findViewById(R.id.deaktiviertSchutteln);
 
 
     }
@@ -521,6 +542,13 @@ public class WeckerMainActivity extends AppCompatActivity {
         }
 
         private boolean schuettelSmartphone(float[] anfangsBewegung, float[] aktuelleBewegung) {
+
+            //Prüfe ob Schütteln berücksichten aktiviert ist
+            if(!durchSchuettelnDeaktivierenSwitch.isChecked())
+            {
+                return false;
+            }
+
             // Log.d(SoundAlarm.class.getSimpleName(), "Anfangs- und AktuelleBewegung "+anfangsBewegung[0] +" " +anfangsBewegung[1]+" "+anfangsBewegung[2]+ "; "+aktuelleBewegung[0]+" "+ aktuelleBewegung[1]+" "+aktuelleBewegung[2]);
             if (anfangsBewegung[0] < -99 || aktuelleBewegung[0] < -99) {
                 throw new RuntimeException("Bewegungssensoren wurden nicht korrekt ausgelesen");
@@ -541,6 +569,12 @@ public class WeckerMainActivity extends AppCompatActivity {
 
         private boolean lichtChanged(float startwert, float aktuellerLichtwert)
         {
+            //Prüfe ob Licht berücksichten aktiviert ist
+            if(!durchLichtDeaktivierenSwitch.isChecked())
+            {
+                return false;
+            }
+
             //Licht ansschalten, aus der Tasche gehohlt
             if(startwert<20 && aktuellerLichtwert>40)
             {

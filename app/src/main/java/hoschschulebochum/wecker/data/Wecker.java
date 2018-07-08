@@ -18,8 +18,8 @@ public class Wecker implements Serializable {
     private final int SekondsToSnooze = 10;
     private boolean settingsShouldRingAtHome = true;
     private boolean settingsShouldRingOnTheWay = true;
-    private boolean settingsSouldSnoozeWhenLigthChange = false;
-    private boolean settingsShouldSnoozeWhenStartToMove = false;
+    private boolean durchLichtDeaktivierenSwitch = false;
+    private boolean durchSchuettelnDeaktivierenSwitch = false;
     private boolean settingsShouldNotRingByConflictsInCalender = false;
     private MyLocation home = new MyLocation("Home" , 51.447709, 7.270900);
     private List<Wochentag> tage = new ArrayList<>();
@@ -141,22 +141,6 @@ public class Wecker implements Serializable {
         this.settingsShouldRingOnTheWay = settingsShouldRingOnTheWay;
     }
 
-    public Boolean getSettingsSouldSnoozeWhenLigthChange() {
-        return isSettingsSouldSnoozeWhenLigthChange();
-    }
-
-    public void setSettingsSouldSnoozeWhenLigthChange(Boolean settingsSouldSnoozeWhenLigthChange) {
-        this.settingsSouldSnoozeWhenLigthChange = settingsSouldSnoozeWhenLigthChange;
-    }
-
-    public Boolean getSettingsShouldSnoozeWhenStartToMove() {
-        return isSettingsShouldSnoozeWhenStartToMove();
-    }
-
-    public void setSettingsShouldSnoozeWhenStartToMove(Boolean settingsShouldSnoozeWhenStartToMove) {
-        this.settingsShouldSnoozeWhenStartToMove = settingsShouldSnoozeWhenStartToMove;
-    }
-
     public Boolean getSettingsShouldNotRingByConflictsInCalender() {
         return settingsShouldNotRingByConflictsInCalender;
     }
@@ -215,19 +199,19 @@ public class Wecker implements Serializable {
         this.settingsShouldRingOnTheWay = settingsShouldRingOnTheWay;
     }
 
-    public boolean isSettingsSouldSnoozeWhenLigthChange() {
-        return settingsSouldSnoozeWhenLigthChange;
+    public boolean isDurchLichtDeaktivierenSwitch() {
+        return durchLichtDeaktivierenSwitch;
     }
 
-    public void setSettingsSouldSnoozeWhenLigthChange(boolean settingsSouldSnoozeWhenLigthChange) {
-        this.settingsSouldSnoozeWhenLigthChange = settingsSouldSnoozeWhenLigthChange;
+    public void setDurchLichtDeaktivierenSwitch(Boolean durchLichtDeaktivierenSwitch) {
+        this.durchLichtDeaktivierenSwitch = durchLichtDeaktivierenSwitch;
     }
 
-    public boolean isSettingsShouldSnoozeWhenStartToMove() {
-        return settingsShouldSnoozeWhenStartToMove;
+    public boolean isDurchSchuettelnDeaktivierenSwitch() {
+        return durchSchuettelnDeaktivierenSwitch;
     }
 
-    public void setSettingsShouldSnoozeWhenStartToMove(boolean settingsShouldSnoozeWhenStartToMove) {
-        this.settingsShouldSnoozeWhenStartToMove = settingsShouldSnoozeWhenStartToMove;
+    public void setDurchSchuettelnDeaktivierenSwitch(boolean durchSchuettelnDeaktivierenSwitch) {
+        this.durchSchuettelnDeaktivierenSwitch = durchSchuettelnDeaktivierenSwitch;
     }
 }
