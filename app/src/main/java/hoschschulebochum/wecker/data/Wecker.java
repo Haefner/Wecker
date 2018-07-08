@@ -64,11 +64,17 @@ public class Wecker implements Serializable {
         //Wenn am aktuellen Tag schon die Weckzeit vorbei ist, suche den nächsten Tag, an dem der Wecker klingeln soll
         Log.d("Wecker", "Vergleiche aktuelle Uhrzeit mit der des Weckers. Die aktuelle Uhrzeit lautet " + h+":"+m
                 + ". Die des Weckers ist " + getHour() + ":" + getMinutes());
-        if(h>= getHour() &&m>= getMinutes())
-        {
+        if (h == getHour()) {
+            //Wenn die Stunde gleich ist kontrolliere Minute
+            if (m >= getMinutes()) {
+                //diesen Tag hat der Wecker schon geklingelt- Suche für den nächsten Tag
+                Log.d("Wecker", "Diesen Tag hat der Wecker schon geklingelt - Prüfe den nächsten Tag. Dieser Wochentag lautet " + tag);
+                tag = Wochentag.getNaechstenWochentag(tag);
+            }
+        } else if (h > getHour()) {
             //diesen Tag hat der Wecker schon geklingelt- Suche für den nächsten Tag
             Log.d("Wecker", "Diesen Tag hat der Wecker schon geklingelt - Prüfe den nächsten Tag. Dieser Wochentag lautet " + tag);
-            tag=Wochentag.getNaechstenWochentag(tag);
+            tag = Wochentag.getNaechstenWochentag(tag);
         }
 
         //schreibe in tag, den nächsten Wochentag an den der Wecker klingeln Soll
