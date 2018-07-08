@@ -91,6 +91,8 @@ public class WeckerMainActivity extends AppCompatActivity {
     private boolean doesRingAtMoment=false;
     private float anfangsLichtwert=-100;
     private float aktuellerLichtwert=-100;
+    private float[] anfangsBewegung= new float[]{-100,-100,-100};
+    private float[] aktuelleBewegung= new float[]{-100,-100,-100};
 
 
     private UserData userData;
@@ -250,8 +252,12 @@ public class WeckerMainActivity extends AppCompatActivity {
 
                         break;
                     //Bewegungssensor Liniar
-                    case Sensor.TYPE_ACCELEROMETER:
-
+                    case Sensor.TYPE_LINEAR_ACCELERATION:
+                        lock.writeLock().lock();
+                        aktuelleBewegung[0] = event.values[0];
+                        aktuelleBewegung[1] = event.values[1];
+                        aktuelleBewegung[2] = event.values[2];
+                        lock.writeLock().unlock();
                         break;
                     case Sensor.TYPE_LIGHT:
                         lock.writeLock().lock();
@@ -266,7 +272,7 @@ public class WeckerMainActivity extends AppCompatActivity {
     }
 
     private void registerListener() {
-            sensorManager.registerListener(sensorEventListener, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), 1000);
+            sensorManager.registerListener(sensorEventListener, sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION), 1000);
             sensorManager.registerListener(sensorEventListener, sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE), 1000);
             sensorManager.registerListener(sensorEventListener, sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT), 1000);
             //Prüfe ob Berechtigung für GPS vorliegt
@@ -377,12 +383,10 @@ public class WeckerMainActivity extends AppCompatActivity {
     }
 
     /**
-     * Speichert die Alarmeinstellung und aktiviert, deaktiviert das nächste Weckerklingeln
+     * Speichert die Alarmeinstellung
      */
     public void saveAlarm() {
         new Dateimanager().saveUserData(mPrefs, userData);
-        //TODO Alarm starten?
-
     }
 
 
@@ -478,29 +482,33 @@ public class WeckerMainActivity extends AppCompatActivity {
         @Override
         protected Object doInBackground(Object... params) {
 
-           if(shouldRing())
-           {
-               anfangsLichtwert=aktuellerLichtwert;
-               lock.writeLock().lock();
-               doesRingAtMoment=true;
-               lock.writeLock().unlock();
-               ringtone.play();
-           }
+            Log.d(SoundAlarm.class.getSimpleName(), "Alarm received!");
+            if (shouldRing()) {
+                anfangsLichtwert = aktuellerLichtwert;
+                lock.writeLock().lock();
+                doesRingAtMoment = true;
+                anfangsBewegung = aktuelleBewegung.clone();
+                lock.writeLock().unlock();
+                ringtone.play();
+            }
 
             Log.d(SoundAlarm.class.getSimpleName(), "Alarm received!");
 
-           if(shouldVibrate()){
-            long[] pattern = { 1000, 1000 };
-            vibrator.vibrate(pattern, 0);}
+            if (shouldVibrate()) {
+                long[] pattern = {1000, 1000};
+                vibrator.vibrate(pattern, 0);
+            }
 
             //klingel so lange, bis Licht sich stark ändert. Dann gehe in den Snooze
             while(doesRingAtMoment)
             {
                 float aktuellerLichtwertKopie=aktuellerLichtwert;
+                float[] aktuelleBewegungKopie = aktuelleBewegung.clone();
              // Entweder eine deutliche Differenz im Lichtbereich, oder der Lichtwert ist von ganz Dunkel ganz hell geworden (Licht angegangen, oder Handy aus tasche geholt, oder umgekehrt
-                if(lichtChanged(anfangsLichtwert,aktuellerLichtwertKopie) )
+                if(lichtChanged(anfangsLichtwert,aktuellerLichtwertKopie)  || schuettelSmartphone(anfangsBewegung, aktuelleBewegungKopie))
                 {
                     lock.writeLock().lock();
+                    Log.d(SoundAlarm.class.getSimpleName(), "Setze doesKlingeln auf false");
                     doesRingAtMoment=false;
                     lock.writeLock().unlock();
                     alarmSnooze();
@@ -510,6 +518,25 @@ public class WeckerMainActivity extends AppCompatActivity {
 
 
             return null;
+        }
+
+        private boolean schuettelSmartphone(float[] anfangsBewegung, float[] aktuelleBewegung) {
+            // Log.d(SoundAlarm.class.getSimpleName(), "Anfangs- und AktuelleBewegung "+anfangsBewegung[0] +" " +anfangsBewegung[1]+" "+anfangsBewegung[2]+ "; "+aktuelleBewegung[0]+" "+ aktuelleBewegung[1]+" "+aktuelleBewegung[2]);
+            if (anfangsBewegung[0] < -99 || aktuelleBewegung[0] < -99) {
+                throw new RuntimeException("Bewegungssensoren wurden nicht korrekt ausgelesen");
+            }
+
+            //Handy lag ruhig auf dem Tisch
+            if (Math.abs(anfangsBewegung[0]) < 0.5 && Math.abs(anfangsBewegung[1]) < 0.5 && Math.abs(anfangsBewegung[2]) < 0.5) {
+                //Benutzer fängt an sich zu Bewegen
+                if (Math.abs(aktuelleBewegung[0]) > 30 || Math.abs(aktuelleBewegung[1]) > 30 || Math.abs(aktuelleBewegung[2]) > 30) {
+                    Log.d(SoundAlarm.class.getSimpleName(), "Klingeln durch Schütteln deaktiviert");
+                    return true;
+                }
+            }
+
+            return false;
+
         }
 
         private boolean lichtChanged(float startwert, float aktuellerLichtwert)
