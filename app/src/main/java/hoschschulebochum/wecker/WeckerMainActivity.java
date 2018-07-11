@@ -28,7 +28,6 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -61,8 +60,6 @@ public class WeckerMainActivity extends AppCompatActivity {
 
 
     private TextView mTextMessage;
-
-    ScrollView scroller;
 
     //Wecker
     private PendingIntent pendingIntent;
@@ -343,7 +340,6 @@ public class WeckerMainActivity extends AppCompatActivity {
 
     private void setUpLocation() {
 
-        scroller.requestDisallowInterceptTouchEvent(true);
         map = (MapView) findViewById(R.id.map);
         map.setTileSource(TileSourceFactory.MAPNIK);
         map.setBuiltInZoomControls(true);
@@ -514,7 +510,6 @@ public class WeckerMainActivity extends AppCompatActivity {
 
     private void getIds()
     {
-        scroller=(ScrollView) findViewById(R.id.scroller);
         mTextMessage = (TextView) findViewById(R.id.message);
         alarmText =(TextView) findViewById(R.id.alarmText);
 
