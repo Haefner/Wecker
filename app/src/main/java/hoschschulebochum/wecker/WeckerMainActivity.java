@@ -130,13 +130,13 @@ public class WeckerMainActivity extends AppCompatActivity {
 
         Log.d(TAG, "onCreate() - snoozeCounter = " + snoozeCounter);
         getIds();
+        setUpListeZurLocation();
+        loadAlarmSettings_SetToGui();
         setUpWecker();
         setUpButtonListener();
         setUpSensorManager();
         setUpLocation();
         registerListener();
-        setUpListeZurLocation();
-        loadAlarmSettings_SetToGui();
 
 
     }
@@ -700,6 +700,14 @@ public class WeckerMainActivity extends AppCompatActivity {
              // Entweder eine deutliche Differenz im Lichtbereich, oder der Lichtwert ist von ganz Dunkel ganz hell geworden (Licht angegangen, oder Handy aus tasche geholt, oder umgekehrt
                 if(lichtChanged(anfangsLichtwert,aktuellerLichtwertKopie)  || schuettelSmartphone(anfangsBewegung, aktuelleBewegungKopie))
                 {
+
+                    try {
+                        synchronized (this){
+                            wait(1000);}
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
                     lock.writeLock().lock();
                     Log.d(SoundAlarm.class.getSimpleName(), "Setze doesKlingeln auf false");
                     doesRingAtMoment=false;
