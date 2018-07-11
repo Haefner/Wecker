@@ -16,8 +16,10 @@ public class Wecker implements Serializable {
     private int hour=6;
     private int minutes=0;
     private final int SekondsToSnooze = 10;
-    private boolean settingsShouldRingAtHome = true;
-    private boolean settingsShouldRingOnTheWay = true;
+    private boolean zuhauseKlingeln = true;
+    private boolean zuhauseVibrieren = true;
+    private boolean unterwegsKlingeln = true;
+    private boolean unterwegsVibrieren = true;
     private boolean durchLichtDeaktivierenSwitch = false;
     private boolean durchSchuettelnDeaktivierenSwitch = false;
     private boolean settingsShouldNotRingByConflictsInCalender = false;
@@ -121,34 +123,6 @@ public class Wecker implements Serializable {
         this.setMinutes(minutes);
     }
 
-    public int getSekondsToSnooze() {
-        return SekondsToSnooze;
-    }
-
-    public Boolean getSettingsShouldRingAtHome() {
-        return isSettingsShouldRingAtHome();
-    }
-
-    public void setSettingsShouldRingAtHome(Boolean settingsShouldRingAtHome) {
-        this.settingsShouldRingAtHome = settingsShouldRingAtHome;
-    }
-
-    public Boolean getSettingsShouldRingOnTheWay() {
-        return isSettingsShouldRingOnTheWay();
-    }
-
-    public void setSettingsShouldRingOnTheWay(Boolean settingsShouldRingOnTheWay) {
-        this.settingsShouldRingOnTheWay = settingsShouldRingOnTheWay;
-    }
-
-    public Boolean getSettingsShouldNotRingByConflictsInCalender() {
-        return settingsShouldNotRingByConflictsInCalender;
-    }
-
-    public void setSettingsShouldNotRingByConflictsInCalender(Boolean settingsShouldNotRingByConflictsInCalender) {
-        this.settingsShouldNotRingByConflictsInCalender = settingsShouldNotRingByConflictsInCalender;
-    }
-
     public MyLocation getHome() {
         if(home==null)
         {return new MyLocation("Home", 51.446905, 7.271703);}
@@ -183,22 +157,6 @@ public class Wecker implements Serializable {
         this.minutes = minutes;
     }
 
-    public boolean isSettingsShouldRingAtHome() {
-        return settingsShouldRingAtHome;
-    }
-
-    public void setSettingsShouldRingAtHome(boolean settingsShouldRingAtHome) {
-        this.settingsShouldRingAtHome = settingsShouldRingAtHome;
-    }
-
-    public boolean isSettingsShouldRingOnTheWay() {
-        return settingsShouldRingOnTheWay;
-    }
-
-    public void setSettingsShouldRingOnTheWay(boolean settingsShouldRingOnTheWay) {
-        this.settingsShouldRingOnTheWay = settingsShouldRingOnTheWay;
-    }
-
     public boolean isDurchLichtDeaktivierenSwitch() {
         return durchLichtDeaktivierenSwitch;
     }
@@ -213,5 +171,37 @@ public class Wecker implements Serializable {
 
     public void setDurchSchuettelnDeaktivierenSwitch(boolean durchSchuettelnDeaktivierenSwitch) {
         this.durchSchuettelnDeaktivierenSwitch = durchSchuettelnDeaktivierenSwitch;
+    }
+
+    public boolean isUnterwegsKlingeln() {
+        return unterwegsKlingeln;
+    }
+
+    public void setUnterwegsKlingeln(boolean unterwegsKlingeln) {
+        this.unterwegsKlingeln = unterwegsKlingeln;
+    }
+
+    public boolean isZuhauseVibrieren() {
+        return zuhauseVibrieren;
+    }
+
+    public void setZuhauseVibrieren(boolean zuhauseVibrieren) {
+        this.zuhauseVibrieren = zuhauseVibrieren;
+    }
+
+    public boolean isZuhauseKlingeln() {
+        return zuhauseKlingeln;
+    }
+
+    public void setZuhauseKlingeln(boolean zuhauseKlingeln) {
+        this.zuhauseKlingeln = zuhauseKlingeln;
+    }
+
+    public boolean isUnterwegsVibrieren() {
+        return unterwegsVibrieren;
+    }
+
+    public void setUnterwegsVibrieren(boolean unterwegsVibrieren) {
+        this.unterwegsVibrieren = unterwegsVibrieren;
     }
 }

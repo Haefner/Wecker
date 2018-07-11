@@ -25,7 +25,11 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ScrollView;
+import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.TimePicker;
@@ -42,6 +46,7 @@ import org.osmdroid.views.overlay.MapEventsOverlay;
 import org.osmdroid.views.overlay.Marker;
 
 import java.util.Calendar;
+import java.util.LinkedList;
 import java.util.concurrent.ExecutionException;
 
 import hoschschulebochum.ContextAuswertung.WetterContext;
@@ -56,6 +61,8 @@ public class WeckerMainActivity extends AppCompatActivity {
 
 
     private TextView mTextMessage;
+
+    ScrollView scroller;
 
     //Wecker
     private PendingIntent pendingIntent;
@@ -97,9 +104,14 @@ public class WeckerMainActivity extends AppCompatActivity {
     private float[] anfangsBewegung= new float[]{-100,-100,-100};
     private float[] aktuelleBewegung= new float[]{-100,-100,-100};
 
+    LinkedList<String> listeZurLocation;
+
 
     private UserData userData;
     SharedPreferences mPrefs;
+
+    Spinner spinnerZuhause;
+    Spinner spinnerUnterwegs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,14 +133,108 @@ public class WeckerMainActivity extends AppCompatActivity {
 
         Log.d(TAG, "onCreate() - snoozeCounter = " + snoozeCounter);
         getIds();
-        loadAlarmSettings_SetToGui();
         setUpWecker();
         setUpButtonListener();
         setUpSensorManager();
         setUpLocation();
         registerListener();
+        setUpListeZurLocation();
+        loadAlarmSettings_SetToGui();
 
 
+    }
+
+    private void setUpListeZurLocation() {
+        listeZurLocation = new LinkedList<>();
+        listeZurLocation.add("klingeln und vibrieren");
+        listeZurLocation.add("Nur klingeln");
+        listeZurLocation.add("Nur vibrieren");
+        listeZurLocation.add("Aus");
+
+        ArrayAdapter<String> listeZurLocationAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, listeZurLocation);
+        listeZurLocationAdapter.setDropDownViewResource(android.R.layout.simple_spinner_item);
+        spinnerZuhause.setAdapter(listeZurLocationAdapter);
+        spinnerUnterwegs.setAdapter(listeZurLocationAdapter);
+
+        spinnerZuhause.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    if (spinnerZuhause.getSelectedItem().toString().equals("klingeln und vibrieren"))
+                    {
+                        userData.getFirstAlarm().setZuhauseKlingeln(true);
+                        userData.getFirstAlarm().setZuhauseVibrieren(true);
+                       Log.d("WeckerMainActivity", "zuhauseKlingeln = "+userData.getFirstAlarm().isZuhauseKlingeln()
+                               +", zuhauseVibrieren = "+ userData.getFirstAlarm().isZuhauseVibrieren());
+
+                    }
+                else if (spinnerZuhause.getSelectedItem().toString().equals("Nur vibrieren"))
+                    {
+                        userData.getFirstAlarm().setZuhauseKlingeln(false);
+                        userData.getFirstAlarm().setZuhauseVibrieren(true);
+                        Log.d("WeckerMainActivity", "zuhauseKlingeln = "+userData.getFirstAlarm().isZuhauseKlingeln()
+                                +", zuhauseVibrieren = "+ userData.getFirstAlarm().isZuhauseVibrieren());
+                    }
+                else if (spinnerZuhause.getSelectedItem().toString().equals("Nur klingeln"))
+                    {
+                        userData.getFirstAlarm().setZuhauseKlingeln(true);
+                        userData.getFirstAlarm().setZuhauseVibrieren(false);
+                        Log.d("WeckerMainActivity", "zuhauseKlingeln = "+userData.getFirstAlarm().isZuhauseKlingeln()
+                                +", zuhauseVibrieren = "+ userData.getFirstAlarm().isZuhauseVibrieren());
+                    }
+                else if (spinnerZuhause.getSelectedItem().toString().equals("Aus"))
+                    {
+                        userData.getFirstAlarm().setZuhauseKlingeln(false);
+                        userData.getFirstAlarm().setZuhauseVibrieren(false);
+                        Log.d("WeckerMainActivity", "zuhauseKlingeln = "+userData.getFirstAlarm().isZuhauseKlingeln()
+                                +", zuhauseVibrieren = "+ userData.getFirstAlarm().isZuhauseVibrieren());
+                    }
+
+                saveAlarm();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+
+        spinnerUnterwegs.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (spinnerUnterwegs.getSelectedItem().toString().equals("klingeln und vibrieren"))
+                {
+                    userData.getFirstAlarm().setUnterwegsKlingeln(true);
+                    userData.getFirstAlarm().setUnterwegsVibrieren(true);
+                    Log.d("WeckerMainActivity", "unterwegsKlingeln = "+userData.getFirstAlarm().isUnterwegsKlingeln()
+                            +", unterwegsVibrieren = "+ userData.getFirstAlarm().isUnterwegsVibrieren());
+                }
+                else if (spinnerUnterwegs.getSelectedItem().toString().equals("Nur vibrieren"))
+                {
+                    userData.getFirstAlarm().setUnterwegsKlingeln(false);
+                    userData.getFirstAlarm().setUnterwegsVibrieren(true);
+                    Log.d("WeckerMainActivity", "unterwegsKlingeln = "+userData.getFirstAlarm().isUnterwegsKlingeln()
+                            +", unterwegsVibrieren = "+ userData.getFirstAlarm().isUnterwegsVibrieren());
+                }
+                else if (spinnerUnterwegs.getSelectedItem().toString().equals("Nur klingeln"))
+                {
+                    userData.getFirstAlarm().setUnterwegsKlingeln(true);
+                    userData.getFirstAlarm().setUnterwegsVibrieren(false);
+                    Log.d("WeckerMainActivity", "unterwegsKlingeln = "+userData.getFirstAlarm().isUnterwegsKlingeln()
+                            +", unterwegsVibrieren = "+ userData.getFirstAlarm().isUnterwegsVibrieren());
+                }
+               else if (spinnerUnterwegs.getSelectedItem().toString().equals("Aus"))
+                {
+                    userData.getFirstAlarm().setUnterwegsKlingeln(false);
+                    userData.getFirstAlarm().setUnterwegsVibrieren(false);
+                    Log.d("WeckerMainActivity", "unterwegsKlingeln = "+userData.getFirstAlarm().isUnterwegsKlingeln()
+                            +", unterwegsVibrieren = "+ userData.getFirstAlarm().isUnterwegsVibrieren());
+                }
+                saveAlarm();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
     }
 
     /**
@@ -151,6 +257,50 @@ public class WeckerMainActivity extends AppCompatActivity {
         }
         durchLichtDeaktivierenSwitch.setChecked(userData.getFirstAlarm().isDurchLichtDeaktivierenSwitch());
         durchSchuettelnDeaktivierenSwitch.setChecked(userData.getFirstAlarm().isDurchSchuettelnDeaktivierenSwitch());
+
+        //Select Boxen wiederherstellen
+        boolean zuhauseKlingeln=userData.getFirstAlarm().isZuhauseKlingeln();
+        boolean zuhauseVibrieren=userData.getFirstAlarm().isZuhauseVibrieren();
+        boolean unterwegsKlingel =userData.getFirstAlarm().isUnterwegsKlingeln();
+        boolean unterwegsVibriern =userData.getFirstAlarm().isUnterwegsVibrieren();
+
+        if(zuhauseKlingeln && zuhauseVibrieren)
+        {
+            spinnerZuhause.setSelection(0);
+        }
+
+        if(zuhauseKlingeln && !zuhauseVibrieren)
+        {
+            spinnerZuhause.setSelection(1);
+        }
+        if(!zuhauseKlingeln && zuhauseVibrieren)
+        {
+            spinnerZuhause.setSelection(2);
+        }
+
+        if(!zuhauseKlingeln && !zuhauseVibrieren)
+        {
+            spinnerZuhause.setSelection(3);
+        }
+        if(unterwegsKlingel && unterwegsVibriern)
+        {
+            spinnerUnterwegs.setSelection(0);
+        }
+
+        if(unterwegsKlingel && !unterwegsVibriern)
+        {
+            spinnerUnterwegs.setSelection(1);
+        }
+        if(!unterwegsKlingel && unterwegsVibriern)
+        {
+            spinnerUnterwegs.setSelection(2);
+        }
+
+        if(!unterwegsKlingel && !unterwegsVibriern)
+        {
+            spinnerUnterwegs.setSelection(3);
+        }
+
 
     }
 
@@ -192,10 +342,14 @@ public class WeckerMainActivity extends AppCompatActivity {
     }
 
     private void setUpLocation() {
+
+        scroller.requestDisallowInterceptTouchEvent(true);
         map = (MapView) findViewById(R.id.map);
         map.setTileSource(TileSourceFactory.MAPNIK);
         map.setBuiltInZoomControls(true);
         map.setMultiTouchControls(true);
+
+
 
         //TODO initial wird immer bei Neuanlage des Weckers als Lokation die Hochschule Bochum gesetzt
         //TODO Statdessen sollte, sofern der Benuter nichts gesetzt hat, die GPS koordinaten genommen werden
@@ -207,6 +361,8 @@ public class WeckerMainActivity extends AppCompatActivity {
         mapController.setZoom(16);
         mapController.setCenter(startPoint);
 
+
+
         //Fügt den Marker, den Markierten Punkt hinzu
         final Marker startMarker = new Marker(map);
         startMarker.setPosition(startPoint);
@@ -215,6 +371,7 @@ public class WeckerMainActivity extends AppCompatActivity {
         map.getOverlays().add(startMarker);
         //refresh the map
         map.invalidate();
+
 
         //Fügt ein Event hinzu, dass auf ein langes klicken auf der Karte reagiert um den Marker zu verschieben
         MapEventsReceiver mReceive = new MapEventsReceiver() {
@@ -241,6 +398,8 @@ public class WeckerMainActivity extends AppCompatActivity {
         locationListener = new MyLocationListener(this,getApplicationContext(), getAktuelleLatitude(), getAktuelleLongitude());
 
     }
+
+
     private void setUpSensorManager() {
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         sensorEventListener = new SensorEventListener() {
@@ -355,6 +514,7 @@ public class WeckerMainActivity extends AppCompatActivity {
 
     private void getIds()
     {
+        scroller=(ScrollView) findViewById(R.id.scroller);
         mTextMessage = (TextView) findViewById(R.id.message);
         alarmText =(TextView) findViewById(R.id.alarmText);
 
@@ -366,6 +526,9 @@ public class WeckerMainActivity extends AppCompatActivity {
          buttonSnooze = (Button) findViewById(R.id.button_alarm_snooze);
          durchLichtDeaktivierenSwitch=(Switch) findViewById(R.id.deaktiviertLicht);
          durchSchuettelnDeaktivierenSwitch=(Switch) findViewById(R.id.deaktiviertSchutteln);
+
+         spinnerUnterwegs = (Spinner) findViewById(R.id.spinnerUnterwegs);
+         spinnerZuhause = (Spinner) findViewById(R.id.spinnerZuhause);
 
 
     }
@@ -503,20 +666,34 @@ public class WeckerMainActivity extends AppCompatActivity {
         @Override
         protected Object doInBackground(Object... params) {
 
+            boolean benutzerZuhaues= isBenutzerZuhause();
+
+            boolean zuhauseKlingeln=userData.getFirstAlarm().isZuhauseKlingeln();
+            boolean zuhauseVibrieren=userData.getFirstAlarm().isZuhauseVibrieren();
+            boolean unterwegsKlingel =userData.getFirstAlarm().isUnterwegsKlingeln();
+            boolean unterwegsVibriern =userData.getFirstAlarm().isUnterwegsVibrieren();
+
+            lock.writeLock().lock();
+            anfangsLichtwert = aktuellerLichtwert;
+            anfangsBewegung = aktuelleBewegung.clone();
+            lock.writeLock().unlock();
+
             Log.d(SoundAlarm.class.getSimpleName(), "Alarm received!");
-            if (shouldRing()) {
-                anfangsLichtwert = aktuellerLichtwert;
+            if ((benutzerZuhaues&&zuhauseKlingeln) || (!benutzerZuhaues && unterwegsKlingel)) {
+
                 lock.writeLock().lock();
                 doesRingAtMoment = true;
-                anfangsBewegung = aktuelleBewegung.clone();
                 lock.writeLock().unlock();
                 ringtone.play();
             }
 
             Log.d(SoundAlarm.class.getSimpleName(), "Alarm received!");
 
-            if (shouldVibrate()) {
+            if ((benutzerZuhaues&&zuhauseVibrieren)|| (!benutzerZuhaues &&unterwegsVibriern)) {
                 long[] pattern = {1000, 1000};
+                lock.writeLock().lock();
+                doesRingAtMoment = true;
+                lock.writeLock().unlock();
                 vibrator.vibrate(pattern, 0);
             }
 
@@ -592,7 +769,7 @@ public class WeckerMainActivity extends AppCompatActivity {
 
         }
 
-        private boolean shouldRing() {
+        private boolean isBenutzerZuhause() {
             Log.d(SoundAlarm.class.getSimpleName(), "Prüfe ob nutzer Zuhause ist");
             //Prüft ob der Benutzer zuhause ist
             if(userData==null)
@@ -614,10 +791,6 @@ public class WeckerMainActivity extends AppCompatActivity {
             //Klingel nur, wenn Benutzer zu Hause ist
             return benutzerZuhause;
         }
-        private boolean shouldVibrate() {
-            return true;
-        }
-
 
     }
 
